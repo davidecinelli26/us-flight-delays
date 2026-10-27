@@ -1,0 +1,222 @@
+<div class="page">
+  <section class="page-header">
+    <h1>How likely is a delay?</h1>
+    <p class="lead">
+      The chance that a flight lands 15 minutes late or more, from what is known when the ticket is
+      bought: airline, airports, date and departure time. The model was trained with Spark MLlib on
+      the flights of
+      {{ model()?.year }} and runs here, in your browser.
+    </p>
+  </section>
+
+  <section class="grid two">
+    <div class="card form">
+      <div>
+        <label for="airline">Airline</label>
+        <select id="airline" [value]="airline()" (change)="airline.set($any($event.target).value)">
+          @for (a of sortedAirlines(); track a.code) {
+            <option [value]="a.code" [selected]="a.code === airline()">
+              {{ a.name }} ({{ a.code }})
+            </option>
+          }
+        </select>
+      </div>
+      <div class="pair">
+        <div>
+          <label for="origin">From</label>
+          <input
+            id="origin"
+            list="origins"
+            [value]="originLabel()"
+            (change)="setOrigin($any($event.target).value)"
+          />
+          <datalist id="origins">
+            @for (o of origins(); track o.code) {
+              <option [value]="o.label"></option>
+            }
+          </datalist>
+        </div>
+        <div>
+          <label for="dest">To</label>
+          <select id="dest" [value]="dest()" (change)="dest.set($any($event.target).value)">
+            @for (d of destinations(); track d.code) {
+              <option [value]="d.code" [selected]="d.code === dest()">{{ d.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="pair">
+        <div>
+          <label for="date">Date</label>
+          <input
+            id="date"
+            type="date"
+            [value]="date()"
+            (input)="date.set($any($event.target).value)"
+          />
+        </div>
+        <div>
+          <label for="hour">Scheduled departure: {{ hourLabel(hour()) }}</label>
+          <input
+            id="hour"
+            type="range"
+            min="0"
+            max="23"
+            [value]="hour()"
+            (input)="hour.set(+$any($event.target).value)"
+          />
+        </div>
+      </div>
+      @if (flight() && !served()) {
+        <p class="small note">
+          This airline did not fly this route in the data. The estimate still combines what the
+          model learned about the airline, the airports and the time separately.
+        </p>
+      }
+    </div>
+
+    <div class="card result">
+      @if (prediction(); as p) {
+        <div class="probability">{{ fmt.pct(100 * p.probability, 0) }}</div>
+        <p>
+          chance of arriving <b>15 minutes late or more</b>, about 1 flight in
+          {{ (1 / p.probability).toFixed(1) }}.
+          @if (model(); as m) {
+            The average flight: {{ fmt.pct(100 * m.baseRate, 0) }}.
+          }
+        </p>
+        <div class="gauge"><span [style.width.%]="100 * p.probability"></span></div>
+
+        <h3>What moves the estimate</h3>
+        <p class="small muted">
+          Each factor compared with an average value of the same factor, in percentage points.
+        </p>
+        <ul class="factors">
+          @for (f of factors(); track f.feature) {
+            <li>
+              <span class="name"
+                >{{ f.label }} <b>{{ f.text }}</b></span
+              >
+              <span class="track">
+                <span
+                  class="bar"
+                  [class.up]="f.impact > 0"
+                  [class.down]="f.impact < 0"
+                  [style.width.%]="f.width"
+                ></span>
+              </span>
+              <span
+                class="value"
+                [class.tone-bad]="f.impact > 0.5"
+                [class.tone-good]="f.impact < -0.5"
+                >{{ fmt.points(f.impact) }}</span
+              >
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="loading">Loading the model…</p>
+      }
+    </div>
+  </section>
+
+  @if (model(); as m) {
+    <section class="grid two">
+      <div class="card">
+        <h2>How good is it?</h2>
+        <p class="subtitle">
+          Trained on days 1–21 of every month ({{ fmt.compact(m.trainFlights) }} flights), tested on
+          days 22–31 ({{ fmt.compact(m.testFlights) }} flights) it never saw.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th class="num">AUC</th>
+              <th class="num">AUC-PR</th>
+              <th class="num">Brier</th>
+              <th class="num">Log loss</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>This model</b></td>
+              <td class="num">{{ m.metrics.model.auc.toFixed(3) }}</td>
+              <td class="num">{{ m.metrics.model.aucPr.toFixed(3) }}</td>
+              <td class="num">{{ m.metrics.model.brier.toFixed(4) }}</td>
+              <td class="num">{{ m.metrics.model.logLoss.toFixed(4) }}</td>
+            </tr>
+            <tr>
+              <td>Past rate of airline, origin and hour</td>
+              <td class="num">{{ m.metrics.historicalRate.auc.toFixed(3) }}</td>
+              <td class="num">{{ m.metrics.historicalRate.aucPr.toFixed(3) }}</td>
+              <td class="num">{{ m.metrics.historicalRate.brier.toFixed(4) }}</td>
+              <td class="num">{{ m.metrics.historicalRate.logLoss.toFixed(4) }}</td>
+            </tr>
+            <tr>
+              <td>Same probability for every flight</td>
+              <td class="num">{{ m.metrics.constant.auc.toFixed(3) }}</td>
+              <td class="num">{{ m.metrics.constant.aucPr.toFixed(3) }}</td>
+              <td class="num">{{ m.metrics.constant.brier.toFixed(4) }}</td>
+              <td class="num">{{ m.metrics.constant.logLoss.toFixed(4) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="small muted explain">
+          AUC is the chance that a delayed flight gets a higher score than a punctual one (0.5 =
+          guessing). Brier score and log loss measure the probabilities themselves: lower is better.
+          Most of what makes a given flight late, the weather that day and the state of the network,
+          is not known when the ticket is bought, so no model of this kind gets close to certainty:
+          the point is to rank flights by risk and give honest probabilities.
+        </p>
+      </div>
+
+      @if (comparison().length) {
+        <div class="card">
+          <h2>Would a richer model do better?</h2>
+          <p class="subtitle">
+            The same test flights, scored by models that also know which hours are bad at which
+            airport and how busy the airport is at that hour.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th class="num">AUC</th>
+                <th class="num">Brier</th>
+                <th class="num">Log loss</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of comparison(); track r.name) {
+                <tr>
+                  <td class="wrap">{{ r.name }}</td>
+                  <td class="num">{{ r.auc.toFixed(3) }}</td>
+                  <td class="num">{{ r.brier.toFixed(4) }}</td>
+                  <td class="num">{{ r.logLoss.toFixed(4) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <p class="small muted explain">
+            Less than one point of AUC: the schedule only carries so much information. The dashboard
+            keeps the simple model, which can be explained factor by factor and needs nothing but
+            the date the user picks (the congestion of a given day is only known from that day's
+            timetable).
+          </p>
+        </div>
+      }
+
+      <div class="card">
+        <h2>Are the probabilities honest?</h2>
+        <p class="subtitle">
+          Test flights in ten groups by predicted risk: points on the diagonal mean that a 30% risk
+          comes true 30% of the time.
+        </p>
+        @if (calibrationChart(); as config) {
+          <app-chart [config]="config" label="Calibration of the model" />
+        }
+      </div>
+    </section>
+  }
+</div>

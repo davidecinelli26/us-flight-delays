@@ -1,0 +1,102 @@
+<div class="page">
+  @if (summary(); as s) {
+    <section class="page-header">
+      <span class="pill">{{ data.year() }} · Bureau of Transportation Statistics</span>
+      <h1>
+        {{ fmt.compact(s.flights) }} US domestic flights in {{ data.year() }}, and how they ended
+      </h1>
+      <p class="lead">
+        Every scheduled flight of the US airlines that report to the Department of Transportation,
+        processed with Apache Spark: {{ fmt.int(s.airlines) }} airlines,
+        {{ fmt.int(s.airports) }} airports, {{ fmt.int(s.routes) }} routes and
+        {{ fmt.compact(s.miles) }} miles flown.
+        @if (other(); as o) {
+          Switch to {{ o.year }} at the top right to compare.
+        }
+      </p>
+    </section>
+
+    <section class="grid kpis">
+      <app-kpi label="Flights" [value]="fmt.int(s.flights)" [note]="flightsDelta()" />
+      <app-kpi
+        label="On time"
+        [value]="fmt.pct(s.onTimePct)"
+        [note]="delta('onTimePct') || 'arrived < 15 min late'"
+        tone="tone-good"
+      />
+      <app-kpi
+        label="Delayed"
+        [value]="fmt.pct(s.delayedPct)"
+        [note]="delta('delayedPct')"
+        tone="tone-warn"
+      />
+      <app-kpi
+        label="Cancelled"
+        [value]="fmt.pct(s.cancelledPct)"
+        [note]="delta('cancelledPct')"
+        tone="tone-bad"
+      />
+      <app-kpi label="Diverted" [value]="fmt.pct(s.divertedPct, 2)" [note]="delta('divertedPct')" />
+      <app-kpi
+        label="Mean arrival delay"
+        [value]="fmt.minutes(s.avgArrDelay)"
+        [note]="delayDelta()"
+      />
+    </section>
+
+    <section class="card outcome">
+      <h2>How a scheduled flight ends</h2>
+      <p class="subtitle">
+        Late flights were late by {{ s.avgDelayWhenLate.toFixed(0) }} minutes on average.
+      </p>
+      <div class="bar" role="img" aria-label="Share of flights by outcome">
+        @for (o of outcomes(); track o.label) {
+          <span
+            [style.flex-grow]="o.pct"
+            [style.background]="o.color"
+            [title]="o.label + ': ' + fmt.pct(o.pct, 2)"
+          ></span>
+        }
+      </div>
+      <div class="legend">
+        @for (o of outcomes(); track o.label) {
+          <span><i [style.background]="o.color"></i>{{ o.label }} {{ fmt.pct(o.pct, 2) }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="card month-card">
+      <h2>Month by month</h2>
+      <p class="subtitle">
+        Scheduled flights and share that arrived on time{{
+          other() ? ', with ' + other()!.year + ' for comparison' : ''
+        }}.
+      </p>
+      @if (monthChart(); as config) {
+        <app-chart [config]="config" label="Flights and on-time rate by month" />
+      }
+    </section>
+
+    <section class="card map-card">
+      <h2>The network</h2>
+      <p class="subtitle">
+        Airports sized by departures and colored by on-time departure rate (red 60% or less, green
+        85% or more), with the 80 busiest routes. Look up any route in
+        <a routerLink="/routes">Routes</a>.
+      </p>
+      <app-airport-map [airports]="airports()" [routes]="mapRoutes()" />
+    </section>
+
+    <section class="grid three facts">
+      @for (f of facts(); track f.title) {
+        <div class="card">
+          <div class="fact-title">{{ f.title }}</div>
+          <div class="fact-value">{{ f.value }}</div>
+          <div class="muted small">{{ f.note }}</div>
+        </div>
+      }
+    </section>
+  } @else {
+    <p class="loading">Loading…</p>
+  }
+</div>

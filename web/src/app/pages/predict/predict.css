@@ -1,0 +1,116 @@
+.form {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.note {
+  color: var(--delayed);
+  margin: 0;
+}
+
+.probability {
+  font-size: 3.4rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.gauge {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+  margin-bottom: 1.2rem;
+}
+
+.gauge span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--ontime), var(--delayed), var(--cancelled));
+  transition: width 0.3s ease;
+}
+
+.factors {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.factors li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track {
+  position: relative;
+  height: 10px;
+  background: var(--surface-2);
+  border-radius: 999px;
+}
+
+.track::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--border);
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.bar.up {
+  left: 50%;
+  background: var(--cancelled);
+}
+
+.bar.down {
+  right: 50%;
+  background: var(--ontime);
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.explain {
+  margin-top: 0.8rem;
+}
+
+@media (max-width: 560px) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+td.wrap {
+  white-space: normal;
+}

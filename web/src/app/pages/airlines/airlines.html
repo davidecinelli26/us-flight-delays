@@ -1,0 +1,64 @@
+<div class="page">
+  <section class="page-header">
+    <h1>Airlines</h1>
+    <p class="lead">
+      Every carrier that reported its flights in the period. Regional airlines such as SkyWest or
+      Endeavor fly under the brands of the major ones, but report their own flights.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>How each airline's flights ended</h2>
+    <p class="subtitle">Most punctual first.</p>
+    @if (outcomeChart(); as config) {
+      <app-chart
+        [config]="config"
+        label="Outcome of flights by airline"
+        [style.--chart-height]="chartHeight()"
+      />
+    }
+  </section>
+
+  <section class="card table-card">
+    <h2>All the numbers</h2>
+    <p class="subtitle">
+      Click a column to sort. Mean delay is over the flights that landed, early arrivals included.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            @for (c of columns; track c.key) {
+              <th [class.num]="c.num">
+                <button class="sort" (click)="sortBy(c.key)" [class.active]="sortKey() === c.key">
+                  {{ c.label }}
+                  @if (sortKey() === c.key) {
+                    <span aria-hidden="true">{{ descending() ? '↓' : '↑' }}</span>
+                  }
+                </button>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of sorted(); track a.code) {
+            <tr>
+              <td>
+                <span class="pill">{{ a.code }}</span> {{ a.name }}
+              </td>
+              <td class="num">{{ fmt.int(a.flights) }}</td>
+              <td class="num">{{ fmt.int(a.flightsPerDay) }}</td>
+              <td class="num" [class]="tone(a.onTimePct, 82, 72)">{{ fmt.pct(a.onTimePct) }}</td>
+              <td class="num">{{ fmt.pct(a.delayedPct) }}</td>
+              <td class="num">{{ fmt.pct(a.cancelledPct, 2) }}</td>
+              <td class="num">{{ fmt.pct(a.divertedPct, 2) }}</td>
+              <td class="num">{{ fmt.minutes(a.avgArrDelay) }}</td>
+              <td class="num">{{ fmt.int(a.routes) }}</td>
+              <td class="num">{{ fmt.int(a.aircraft) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

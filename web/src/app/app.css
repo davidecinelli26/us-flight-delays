@@ -1,0 +1,137 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.brand svg {
+  color: var(--accent);
+  transform: rotate(45deg);
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.links {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.links a {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+}
+
+.links a:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  text-decoration: none;
+}
+
+.links a.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.years {
+  margin-left: auto;
+  display: flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.years button {
+  border: 0;
+  background: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: 7px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.years button.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+main {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  header {
+    position: static;
+  }
+
+  nav {
+    gap: 0.5rem 1rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .years {
+    order: 2;
+  }
+
+  .links {
+    order: 3;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .links a {
+    white-space: nowrap;
+  }
+}
+
+footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}

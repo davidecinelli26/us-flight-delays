@@ -1,0 +1,191 @@
+<div class="page">
+  <section class="page-header">
+    <h1>Why and when flights are late</h1>
+    <p class="lead">
+      A flight counts as delayed when it lands 15 minutes or more after its scheduled time, the
+      definition used by the Department of Transportation. Since June 2003 airlines also report what
+      caused each delay.
+    </p>
+  </section>
+
+  <section class="grid two">
+    <div class="card">
+      <h2>What causes the delay minutes</h2>
+      <p class="subtitle">Share of all minutes of delay of the late flights, by reported cause.</p>
+      @if (disruptions(); as d) {
+        <div class="causes">
+          @if (causeChart(); as config) {
+            <app-chart
+              [config]="config"
+              label="Delay minutes by cause"
+              style="--chart-height: 210px"
+            />
+          }
+          <ul>
+            @for (c of d.delayCauses; track c.cause; let i = $index) {
+              <li>
+                <i [style.background]="causeColors[i]"></i>
+                <b>{{ c.cause }}</b> {{ fmt.pct(c.pct) }}
+                <span class="muted small">{{ fmt.compact(c.minutes) }} min</span>
+              </li>
+            }
+          </ul>
+        </div>
+        <p class="muted small">
+          "Late aircraft" is delay inherited from the previous flight of the same plane: delays
+          propagate through the day. "Air traffic system" covers congestion, airport operations and
+          non-extreme weather.
+        </p>
+      }
+    </div>
+
+    <div class="card">
+      <h2>Delays snowball through the day</h2>
+      <p class="subtitle">By scheduled departure hour (local time).</p>
+      @if (hourChart(); as config) {
+        <app-chart [config]="config" label="Outcome by departure hour" />
+      }
+    </div>
+
+    <div class="card">
+      <h2>Day of the week</h2>
+      <p class="subtitle">Share of flights delayed, cancelled or diverted.</p>
+      @if (weekdayChart(); as config) {
+        <app-chart [config]="config" label="Outcome by day of the week" />
+      }
+    </div>
+
+    <div class="card">
+      <h2>Season</h2>
+      <p class="subtitle">Summer storms and winter weather, month by month.</p>
+      @if (monthChart(); as config) {
+        <app-chart [config]="config" label="Outcome by month" />
+      }
+    </div>
+
+    <div class="card">
+      <h2>How late, how early</h2>
+      <p class="subtitle">Arrival delay of the flights that reached their destination.</p>
+      @if (histogramChart(); as config) {
+        <app-chart [config]="config" label="Distribution of arrival delays" />
+      }
+    </div>
+
+    <div class="card">
+      <h2>Cancellations and diversions</h2>
+      <p class="subtitle">Reason reported for each cancellation.</p>
+      @if (cancellationChart(); as config) {
+        <app-chart
+          [config]="config"
+          label="Cancellations by reason"
+          style="--chart-height: 170px"
+        />
+      }
+      @if (disruptions(); as d) {
+        <p class="small diversions">
+          <b>{{ fmt.int(d.diversions.flights) }}</b> flights were diverted to another airport;
+          <b>{{ fmt.pct(d.diversions.reachedDestinationPct) }}</b> of them still reached their
+          destination later.
+        </p>
+      }
+    </div>
+  </section>
+
+  <section class="grid two">
+    <div class="card">
+      <h2>Airports: best and worst on-time departures</h2>
+      <p class="subtitle">Among the 50 busiest airports.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Airport</th>
+              <th class="num">Departures</th>
+              <th class="num">On time</th>
+              <th class="num">Mean delay</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of airportRanking().best; track a.code) {
+              <tr>
+                <td>
+                  <b>{{ a.code }}</b> <span class="muted">{{ a.city }}</span>
+                </td>
+                <td class="num">{{ fmt.int(a.departures) }}</td>
+                <td class="num" [class]="tone(a.onTimeDeparturePct, 82, 72)">
+                  {{ fmt.pct(a.onTimeDeparturePct) }}
+                </td>
+                <td class="num">{{ fmt.minutes(a.avgDepDelay) }}</td>
+              </tr>
+            }
+            <tr class="gap">
+              <td colspan="4">⋯</td>
+            </tr>
+            @for (a of airportRanking().worst; track a.code) {
+              <tr>
+                <td>
+                  <b>{{ a.code }}</b> <span class="muted">{{ a.city }}</span>
+                </td>
+                <td class="num">{{ fmt.int(a.departures) }}</td>
+                <td class="num" [class]="tone(a.onTimeDeparturePct, 82, 72)">
+                  {{ fmt.pct(a.onTimeDeparturePct) }}
+                </td>
+                <td class="num">{{ fmt.minutes(a.avgDepDelay) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Routes: best and worst on-time arrivals</h2>
+      @if (routeRanking(); as r) {
+        <p class="subtitle">
+          Among the {{ fmt.int(r.count) }} routes flown at least once a day on average.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th class="num">Flights</th>
+                <th class="num">On time</th>
+                <th class="num">Mean delay</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (x of r.best; track x.origin + x.dest) {
+                <tr>
+                  <td>
+                    <b>{{ x.origin }} → {{ x.dest }}</b>
+                  </td>
+                  <td class="num">{{ fmt.int(x.flights) }}</td>
+                  <td class="num" [class]="tone(x.onTimePct, 82, 72)">
+                    {{ fmt.pct(x.onTimePct) }}
+                  </td>
+                  <td class="num">{{ fmt.minutes(x.avgArrDelay) }}</td>
+                </tr>
+              }
+              <tr class="gap">
+                <td colspan="4">⋯</td>
+              </tr>
+              @for (x of r.worst; track x.origin + x.dest) {
+                <tr>
+                  <td>
+                    <b>{{ x.origin }} → {{ x.dest }}</b>
+                  </td>
+                  <td class="num">{{ fmt.int(x.flights) }}</td>
+                  <td class="num" [class]="tone(x.onTimePct, 82, 72)">
+                    {{ fmt.pct(x.onTimePct) }}
+                  </td>
+                  <td class="num">{{ fmt.minutes(x.avgArrDelay) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+</div>

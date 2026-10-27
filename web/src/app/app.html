@@ -1,0 +1,48 @@
+<header>
+  <nav>
+    <a class="brand" routerLink="/">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+        />
+      </svg>
+      US Flight Delays
+    </a>
+    <div class="links">
+      @for (link of links; track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: link.exact }"
+          >{{ link.label }}</a
+        >
+      }
+    </div>
+    @if (data.years().length > 1) {
+      <div class="years" role="group" aria-label="Year shown">
+        @for (y of data.years(); track y.year) {
+          <button
+            [class.active]="y.year === data.year()"
+            [attr.aria-pressed]="y.year === data.year()"
+            (click)="data.select(y.year)"
+          >
+            {{ y.year }}
+          </button>
+        }
+      </div>
+    }
+  </nav>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer>
+  <span>BTS On-Time Performance, {{ years() }}</span>
+  <span>·</span>
+  <span>Computed with Apache Spark</span>
+  <span>·</span>
+  <a href="https://github.com/davidecinelli26/us-flight-delays">Source on GitHub</a>
+</footer>

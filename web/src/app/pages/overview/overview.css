@@ -1,0 +1,45 @@
+.page-header h1 {
+  margin-top: 0.7rem;
+  max-width: 24ch;
+}
+
+.outcome {
+  margin-bottom: 1rem;
+}
+
+.bar {
+  display: flex;
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 0.6rem 0 0.7rem;
+}
+
+.bar span {
+  flex-basis: 0;
+  min-width: 2px;
+}
+
+.map-card,
+.month-card {
+  margin-bottom: 1rem;
+}
+
+.facts .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.fact-title {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fact-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}

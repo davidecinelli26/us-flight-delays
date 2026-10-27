@@ -1,0 +1,186 @@
+<div class="page">
+  <section class="page-header">
+    <h1>Route explorer</h1>
+    <p class="lead">
+      Pick two airports to see how the flights between them went. Leave the destination empty to see
+      where one can fly from an airport.
+    </p>
+  </section>
+
+  <section class="card search">
+    <div>
+      <label for="origin">From</label>
+      <input
+        id="origin"
+        list="airports"
+        placeholder="e.g. JFK"
+        [value]="originText()"
+        (input)="originText.set($any($event.target).value)"
+      />
+    </div>
+    <button
+      class="swap"
+      (click)="swap()"
+      title="Swap origin and destination"
+      aria-label="Swap origin and destination"
+    >
+      ⇄
+    </button>
+    <div>
+      <label for="dest">To</label>
+      <input
+        id="dest"
+        list="airports"
+        placeholder="e.g. LAX"
+        [value]="destText()"
+        (input)="destText.set($any($event.target).value)"
+      />
+    </div>
+    <datalist id="airports">
+      @for (o of options(); track o) {
+        <option [value]="o"></option>
+      }
+    </datalist>
+  </section>
+
+  <section class="grid two">
+    <div class="card">
+      @if (route(); as r) {
+        <h2>{{ label(origin()) }} → {{ label(dest()) }}</h2>
+        <p class="subtitle">{{ fmt.miles(r.distance) }}</p>
+
+        <div class="stats">
+          <div>
+            <span class="big">{{ fmt.int(r.flights) }}</span
+            ><span class="muted">scheduled flights</span>
+          </div>
+          <div>
+            <span class="big" [class]="tone(r.onTimePct, 82, 72)">{{ fmt.pct(r.onTimePct) }}</span>
+            <span class="muted">on time · national {{ fmt.pct(national()?.onTimePct) }}</span>
+          </div>
+          <div>
+            <span class="big">{{ fmt.minutes(r.avgArrDelay) }}</span
+            ><span class="muted">mean arrival delay</span>
+          </div>
+        </div>
+
+        <table>
+          <tbody>
+            <tr>
+              <td>Delayed 15+ min</td>
+              <td class="num">{{ fmt.pct(r.delayedPct) }}</td>
+              <td class="num muted">{{ fmt.pct(national()?.delayedPct) }} nationally</td>
+            </tr>
+            <tr>
+              <td>Cancelled</td>
+              <td class="num">{{ fmt.pct(r.cancelledPct, 2) }}</td>
+              <td class="num muted">{{ fmt.pct(national()?.cancelledPct, 2) }}</td>
+            </tr>
+            <tr>
+              <td>Diverted</td>
+              <td class="num">{{ fmt.pct(r.divertedPct, 2) }}</td>
+              <td class="num muted">{{ fmt.pct(national()?.divertedPct, 2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        @if (data.otherYear(); as y) {
+          <p class="small then">
+            @if (then(); as t) {
+              In {{ y }}: <b>{{ fmt.int(t.flights) }}</b> flights,
+              <b>{{ fmt.pct(t.onTimePct) }}</b> on time, mean delay
+              {{ fmt.minutes(t.avgArrDelay) }}, flown by {{ t.airlines.join(', ') }}.
+            } @else {
+              Not flown nonstop in {{ y }}.
+            }
+          </p>
+        }
+
+        <h3>Which airline?</h3>
+        @if (bestAirline(); as b) {
+          <div class="best">
+            <span class="trophy" aria-hidden="true">★</span>
+            <span>
+              Most punctual on this route: <b>{{ b.name }}</b
+              >, {{ fmt.pct(b.onTimePct) }} on time over {{ fmt.int(b.flights) }} flights ({{
+                fmt.points(b.gap)
+              }}
+              over the least punctual).
+            </span>
+          </div>
+        }
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Airline</th>
+                <th class="num">Flights</th>
+                <th class="num">On time</th>
+                <th class="num">Cancelled</th>
+                <th class="num">Mean delay</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of r.byAirline; track a.airline) {
+                <tr [class.best-row]="a.airline === bestAirline()?.airline">
+                  <td>
+                    <span class="pill">{{ a.airline }}</span> {{ airlineName(a.airline) }}
+                  </td>
+                  <td class="num">{{ fmt.int(a.flights) }}</td>
+                  <td class="num" [class]="tone(a.onTimePct, 82, 72)">
+                    {{ fmt.pct(a.onTimePct) }}
+                  </td>
+                  <td class="num">{{ fmt.pct(a.cancelledPct, 2) }}</td>
+                  <td class="num">{{ fmt.minutes(a.avgArrDelay) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (reverse(); as back) {
+          <p class="small muted">
+            The way back, {{ back.origin }} → {{ back.dest }}: {{ fmt.int(back.flights) }} flights,
+            {{ fmt.pct(back.onTimePct) }} on time.
+            <button class="link" (click)="swap()">Show it</button>
+          </p>
+        }
+      } @else if (origin(); as o) {
+        @if (dest(); as d) {
+          <h2>No scheduled flights from {{ o.code }} to {{ d.code }}</h2>
+          <p class="muted">
+            There is no nonstop service between these airports in the data. Here are the
+            destinations from {{ o.code }}.
+          </p>
+        } @else {
+          <h2>Nonstop from {{ label(o) }}</h2>
+          <p class="subtitle">
+            {{ fmt.int(o.departures) }} departures to {{ fmt.int(o.destinations) }} airports,
+            {{ fmt.pct(o.onTimeDeparturePct) }} left on time.
+          </p>
+        }
+        <div class="chips">
+          @for (x of destinations(); track x.route.dest) {
+            <button (click)="pick(x.route.dest)">
+              <b>{{ x.route.dest }}</b>
+              <span class="muted small"
+                >{{ fmt.int(x.route.flights) }} · {{ fmt.pct(x.route.onTimePct, 0) }}</span
+              >
+            </button>
+          }
+        </div>
+      } @else {
+        <h2>Choose an origin</h2>
+        <p class="muted">Type an airport code or a city and pick it from the list.</p>
+      }
+    </div>
+
+    <div class="card">
+      <app-airport-map
+        [airports]="mapAirports()"
+        [routes]="mapRoutes()"
+        [fly]="flight()"
+        style="--map-height: 460px"
+      />
+    </div>
+  </section>
+</div>

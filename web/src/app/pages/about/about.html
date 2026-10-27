@@ -1,0 +1,78 @@
+<div class="page">
+  <section class="page-header">
+    <h1>About this dashboard</h1>
+    <p class="lead">How the numbers were made, and by whom.</p>
+  </section>
+
+  <section class="card">
+    <h2>Data</h2>
+    <ul>
+      <li>
+        <a href="https://www.transtats.bts.gov/Fields.asp?gnoyr_VQ=FGJ"
+          >Reporting Carrier On-Time Performance</a
+        >, Bureau of Transportation Statistics, US Department of Transportation: one row per
+        scheduled domestic flight of the airlines that report to the DOT, {{ flights() }}. The 2013
+        files are the ones of the original course project; 2024 shows how things changed.
+      </li>
+      <li>
+        Airport names and coordinates from
+        <a href="https://ourairports.com/data/">OurAirports</a> (public domain).
+      </li>
+      <li>
+        Map borders from <a href="https://www.naturalearthdata.com/">Natural Earth</a> (public
+        domain), shipped with the site: the map loads nothing from third-party servers.
+      </li>
+      <li>
+        Charts by <a href="https://www.chartjs.org/">Chart.js</a>, map by
+        <a href="https://leafletjs.com/">Leaflet</a>.
+      </li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Definitions</h2>
+    <ul>
+      <li>
+        <b>On time</b>: arrived less than 15 minutes after the scheduled time. <b>Delayed</b>: 15
+        minutes or more.
+      </li>
+      <li>
+        Every scheduled flight is exactly one of on time, delayed, cancelled or diverted, so the
+        four shares add up to 100%.
+      </li>
+      <li>
+        <b>Mean delay</b> is over the flights that landed at their destination, with early arrivals
+        counted as negative.
+      </li>
+      <li>
+        <b>Delay causes</b> are reported by the airlines for flights 15 minutes late or more, since
+        June 2003.
+      </li>
+      <li>Distances are in statute miles, as published by BTS.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>How it is built</h2>
+    <pre>
+BTS monthly zips ──► Spark (Scala) ──► small JSON tables ──► this Angular app
+ checksum-verified    clean · aggregate     web/public/data         static, on GitHub Pages
+                      train the model</pre>
+    <p>
+      An Apache Spark job reads every flight, computes the aggregates shown here and trains the
+      delay model with Spark MLlib. The dashboard only reads the results, so it needs no server.
+      Source code, tests and the full method are on
+      <a href="https://github.com/davidecinelli26/us-flight-delays">GitHub</a>.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Authors</h2>
+    <p>
+      <a href="https://github.com/davidecinelli26">Davide Cinelli</a> and
+      <a href="https://github.com/GiuseppeCuiuri">Giuseppe Cuiuri</a>. Started as our project for
+      the course <i>Modelli e tecniche per Big Data</i>, MSc in Computer Engineering, University of
+      Calabria, A.Y. 2024/2025.
+    </p>
+  </section>
+</div>

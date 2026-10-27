@@ -1,0 +1,22 @@
+# Raw and repacked BTS files: downloaded by `sbt run download`, never versioned
+/data/
+
+# Scala / sbt
+pipeline/target/
+pipeline/project/target/
+pipeline/project/project/
+.bsp/
+.metals/
+.bloop/
+
+# Angular / Node
+web/node_modules/
+web/dist/
+web/.angular/
+
+# Editors and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

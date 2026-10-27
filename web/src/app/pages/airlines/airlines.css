@@ -1,0 +1,17 @@
+.card {
+  margin-bottom: 1rem;
+}
+
+.sort {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+
+.sort.active {
+  color: var(--accent);
+}
